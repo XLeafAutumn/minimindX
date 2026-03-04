@@ -139,3 +139,19 @@ def precompute_freqs(
 
     return freqs_cos, freqs_sin
 
+def apply_rotary_pos_emb(
+    q, k, cos, sin, position_ids=None, unsqueeze_dim=1
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    def rotate_half(x):
+        return torch.cat(
+            (-x[..., x.shape[-1] // 2 :], x[..., : x.shape[-1] // 2]), dim=-1
+        )
+
+    q_embed = (q * cos.unsqueeze(unsqueeze_dim)) + (
+        rotate_half(q) * sin.unsqueeze(unsqueeze_dim)
+    )
+    k_embed = (k * cos.unsqueeze(unsqueeze_dim)) + (
+        rotate_half(k) * sin.unsqueeze(unsqueeze_dim)
+    )
+    return q_embed, k_embed
+
